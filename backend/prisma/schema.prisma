@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum GameStatus {
+  LOBBY
+  QUESTION_SETUP
+  VOTING
+  RESULTS
+}
+
+model Room {
+  id        String     @id @default(cuid())
+  code      String     @unique
+  status    GameStatus @default(LOBBY)
+  createdAt DateTime   @default(now())
+
+  players   Player[]
+  questions Question[]
+  votes     Vote[]
+}
+
+model Player {
+  id      String  @id @default(cuid())
+  name    String
+  isOwner Boolean @default(false)
+
+  roomId String
+  room   Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  votesCast     Vote[] @relation("VotesCast")
+  votesReceived Vote[] @relation("VotesReceived")
+}
+
+model Question {
+  id    String @id @default(cuid())
+  text  String
+  order Int
+
+  roomId String
+  room   Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  votes Vote[]
+}
+
+model Vote {
+  id String @id @default(cuid())
+
+  roomId String
+  room   Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  voterId String
+  voter   Player @relation("VotesCast", fields: [voterId], references: [id], onDelete: Cascade)
+
+  targetId String
+  target   Player @relation("VotesReceived", fields: [targetId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}
