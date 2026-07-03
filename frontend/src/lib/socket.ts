@@ -4,19 +4,23 @@ let socket: Socket | null = null;
 
 export const getSocket = () => {
   if (!socket) {
-    console.log("🔌 Connecting socket...");
+    const url = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3000";
 
-    socket = io("http://localhost:3000", {
+    console.log("🔌 Connecting socket to:", url);
+
+    const newSocket = io(url, {
       transports: ["websocket"],
     });
 
-    socket.on("connect", () => {
-      console.log("✅ SOCKET CONNECTED:", socket.id);
+    newSocket.on("connect", () => {
+      console.log("✅ SOCKET CONNECTED:", newSocket.id);
     });
 
-    socket.on("connect_error", (err) => {
+    newSocket.on("connect_error", (err) => {
       console.log("❌ SOCKET ERROR:", err.message);
     });
+
+    socket = newSocket;
   }
 
   return socket;
